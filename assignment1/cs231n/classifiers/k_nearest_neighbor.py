@@ -103,8 +103,11 @@ class KNearestNeighbor(object):
             #######################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            # axis=1 allows to compute the distance for each training point individually 
+            # while keeping the shape of the resulting array consistent with the number of training points
 
+            dists[i, :] = np.sqrt(np.sum(np.square(self.X_train - X[i]), axis=1))
+            
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
@@ -133,8 +136,14 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # (pi - pj)**2 = -2pipj + pi**2 + pj**2 <- sqrt this
+        # dists = (500, 5000)
+        # self.X_train: (5000, 3072) X: (500, 3072)
+        # wrong: dists = -2 * self.X_train @ X.T + np.square(self.X_train) + np.square(X)
 
+        dists = np.sqrt(-2 * X @ self.X_train.T + np.square(X).sum(axis=1, keepdims=True) + np.square(self.X_train).sum(axis=1, keepdims=True).T)
+
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
