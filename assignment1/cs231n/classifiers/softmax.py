@@ -34,7 +34,33 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = X.shape[0]
+
+    for i in range(num_train):
+        # calculate scores
+        scores = X[i] @ W
+
+        # avoid numerically instability - limited precision in floating-point arithmetic
+        scores -= np.max(scores)
+
+        # calculate probabilities
+        exp_scores = np.exp(scores)
+        probs = exp_scores / np.sum(exp_scores)
+
+        # compute cross-entropy - only for the predicted probability corresponding to the correct class
+        correct_class_prob = probs[y[i]]
+        loss -= np.log(correct_class_prob)
+
+        # Compute gradient for the softmax scores
+        dW += np.outer(X[i], probs)
+
+
+    # Average loss over all examples
+    loss = loss / num_train + reg * np.sum(W**2)
+    
+    # Add gradient of regularization term
+    dW = dW / num_train + 2 * reg * W  
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -59,7 +85,26 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = X.shape[0]
+
+    # Compute scores
+    scores = X @ W
+    
+    # avoid numerically instability - limited precision in floating-point arithmetic
+    shifted_scores = scores - np.max(scores, axis=1, keepdims=True)
+    
+    # calculate probabilities
+    probs = np.exp(shifted_scores)
+    probs /= probs.sum(axis=1, keepdims=True)
+    
+    loss = -np.log(probs[range(num_train), y]).sum()
+    
+    # Add regularization to the loss
+    loss = loss / num_train + reg * np.sum(W**2)
+    
+    # Compute gradient
+    probs[range(num_train), y] -= 1  
+    dW = X.T @ probs / num_train + 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
