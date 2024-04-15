@@ -28,7 +28,11 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # reshape to rows
+    x_rows = x.reshape(x.shape[0], -1)
+
+    # loss equals - matrix multiplicaitons of x(rows) and W plus biases
+    out = x_rows @ w + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -61,7 +65,21 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # maintain the number of rows
+    x_rows = x.reshape(x.shape[0], -1)
+
+    # gradient to respect to inputs x - matmul - a reshape to original shape
+    # output layer (dout) back through the weights transposed (w.T)
+    dx = (dout @ w.T).reshape(x.shape[0], *x.shape[1:])
+
+    # gradient to respect to weights - matmul 
+    # transposed input matrix (x_rows.T) by the gradient with respect to the output (dout).
+    dw = x_rows.T @ dout
+
+    # gradient with respect to the biases (db), 
+    # sum the gradient with respect to the output (dout) 
+    # along the axis corresponding to the examples (axis 0).
+    db = dout.sum(axis=0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
