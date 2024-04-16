@@ -105,7 +105,8 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Rectified Linear Unit -> f(x)=max(0,x)
+    out = np.maximum(0, x)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -132,7 +133,13 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Compute the binary mask indicating which elements of X are greater than zero
+    mask = (x > 0)
+
+    # Compute the gradient of the loss with respect to the inputs X
+    # element-wise multiplication instead of matrix multiplication 
+    # since we want to retain the gradient information only for the elements that were activated 
+    dx = dout * mask
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -791,7 +798,16 @@ def svm_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = y.shape[0]
+    true_scores = x[range(num_train), y][:, None]
+    margins = np.maximum(0, x - true_scores + 1)
+
+    # calculate loss
+    loss = np.sum(margins) / num_train - 1
+    
+    # calculate gradients
+    dx = (margins > 0).astype(float) / num_train
+    dx[range(num_train), y] -= dx.sum(axis=1)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -821,7 +837,18 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    num_train = y.shape[0]
+
+    # calculate probabilities with numerically stable exponents
+    probs = np.exp(x - x.max(axis=1, keepdims=True))
+    probs /= probs.sum(axis=1, keepdims=True)
+    
+    # sum cross entropies as loss
+    loss = -np.log(probs[range(num_train), y]).sum() / num_train
+        
+    # Compute gradient
+    probs[range(num_train), y] -= 1  
+    dx = probs / num_train
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
