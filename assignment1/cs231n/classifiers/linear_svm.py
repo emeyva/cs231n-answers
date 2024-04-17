@@ -91,16 +91,18 @@ def svm_loss_vectorized(W, X, y, reg):
     # result in loss.                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    num_train = X.shape[0]
-    scores = X @ W
-    margins = np.maximum(0, scores - scores[np.arange(num_train), y][:, np.newaxis] + 1)
+    
+    N = len(y)
+    Y_hat = X @ W
 
-    # Set the margin for the correct class to zero
-    margins[np.arange(num_train), y] = 0
+    # scores for true labels
+    y_hat_true = Y_hat[range(N), y][:, np.newaxis]    
 
-    # calculate loss
-    loss = np.sum(margins) / num_train
-    loss += 0.5 * reg * np.sum(W * W)
+    # margin for each score
+    margins = np.maximum(0, Y_hat - y_hat_true + 1)   
+
+    # regularized loss
+    loss = margins.sum() / N - 1 + reg * np.sum(W**2) 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -115,20 +117,16 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    # Counting the positive margins
-    num_pos = np.sum(margins > 0, axis=1)
+    # initial gradient with respect to Y_hat
+    dW = (margins > 0).astype(int)    
 
-    # Gradient for correct class
-    dW = np.dot(X.T, margins > 0)
+    # update gradient to include correct labels
+    dW[range(N), y] -= dW.sum(axis=1) 
 
-    # Subtracting the count of positive margins for the correct class
-    dW[np.arange(num_train), y] -= num_pos
-    
-    # Average over number of training examples
-    dW /= num_train
-    
-    # Regularization gradient
-    dW += reg * W
+    # gradient with respect to W
+    dW = X.T @ dW / N + 2 * reg * W   
+
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
