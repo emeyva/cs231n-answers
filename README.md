@@ -8,4 +8,5 @@ me trying to solve the assignments from cs231n class from Stanford
 Other lectures from Andrej Karpathy under /extra
 
 - [micrograd](extra/micrograd.ipynb)
-- [makemore](extra/makemore.ipynb)
+- [makemore pt1](extra/makemore_pt1.ipynb)
+- [makemore pt2](extra/makemore_pt2.ipynb)
