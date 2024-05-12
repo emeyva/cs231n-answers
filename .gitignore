@@ -41,3 +41,7 @@ htmlcov/
 *.njsproj
 *.sln
 *.sw??
+
+# notebook cp
+.ipynb_checkpoints
+
