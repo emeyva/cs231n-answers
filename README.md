@@ -10,3 +10,4 @@ Other lectures from Andrej Karpathy under /extra
 - [micrograd](extra/micrograd.ipynb)
 - [makemore pt1](extra/makemore_pt1.ipynb)
 - [makemore pt2](extra/makemore_pt2.ipynb)
+- [makemore pt3](extra/makemore_pt3.ipynb)
