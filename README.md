@@ -12,3 +12,4 @@ Other lectures from Andrej Karpathy under /extra
 - [makemore pt2](extra/makemore_pt2.ipynb)
 - [makemore pt3](extra/makemore_pt3.ipynb)
 - [makemore pt4](extra/makemore_pt4.ipynb)
+- [makemore pt5](extra/makemore_pt5.ipynb)
