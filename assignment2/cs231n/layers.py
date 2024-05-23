@@ -308,7 +308,23 @@ def batchnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # unpack cache
+    x, mu, var, std, gamma, x_hat, shape, axis = cache
+
+    # derivative of beta
+    dbeta = dout.reshape(shape, order='F').sum(axis)
+
+    # derivative of gamma
+    dgamma = (dout * x_hat).reshape(shape, order='F').sum(axis)
+
+    dx_hat = dout * gamma
+
+    dstd = -np.sum(dx_hat * (x-mu), axis=0) / (std**2)          
+    dvar = 0.5 * dstd / std                                     
+    dx1 = dx_hat / std + 2 * (x-mu) * dvar / len(dout)          
+    dmu = -np.sum(dx1, axis=0)                                  
+    dx2 = dmu / len(dout)                                       
+    dx = dx1 + dx2                                              
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -342,14 +358,20 @@ def batchnorm_backward_alt(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    _, _, _, std, gamma, x_hat, shape, axis = cache # expand cache
-    S = lambda x: x.sum(axis=0)                     # helper function
+    # unpack cache
+    _, _, _, std, gamma, x_hat, shape, axis = cache
+
+    # get dout size
+    N = len(dout)
     
-    dbeta = dout.reshape(shape, order='F').sum(axis)            # derivative w.r.t. beta
-    dgamma = (dout * x_hat).reshape(shape, order='F').sum(axis) # derivative w.r.t. gamma
-    
-    dx = dout * gamma / (len(dout) * std)          # temporarily initialize scale value
-    dx = len(dout)*dx  - S(dx*x_hat)*x_hat - S(dx) # derivative w.r.t. unnormalized x
+    # derivative of beta
+    dbeta = dout.reshape(shape, order='F').sum(axis)
+
+    # derivative of gamma
+    dgamma = (dout * x_hat).reshape(shape, order='F').sum(axis)
+
+    dx = dout * gamma / (N * std)
+    dx = N*dx  - (dx*x_hat).sum(axis=axis)*x_hat - dx.sum(axis=axis)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
