@@ -6,8 +6,8 @@ e.g. isolating all regex/pattern parts to the RegexTokenizer, but
 some concessions are made for simplicity.
 """
 
-def get_stats(ids):
-    counts = {} # 
+def get_stats(ids, counts=None):
+    counts = {} if counts is None else counts# 
     for pair in zip(ids, ids[1:]): # iterating consecutive elements
         counts[pair] = counts.get(pair, 0) + 1
     return counts
