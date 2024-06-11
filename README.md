@@ -6,7 +6,7 @@ Working around the assignments from [cs231n class from Stanford](https://cs231n.
 - Assignment 3
 
 
-Other lectures from Andrej Karpathy under /extra:
+Other lectures from Andrej Karpathy - [Neural Networks: Zero to Hero](https://karpathy.ai/zero-to-hero.html):
 
 - [micrograd](extra/micrograd.ipynb)
 - [makemore pt1](extra/makemore_pt1.ipynb)
@@ -14,8 +14,9 @@ Other lectures from Andrej Karpathy under /extra:
 - [makemore pt3](extra/makemore_pt3.ipynb)
 - [makemore pt4](extra/makemore_pt4.ipynb)
 - [makemore pt5](extra/makemore_pt5.ipynb)
-
 - [nanoGPT](nano-gpt/nano-gpt.ipynb)
+- [tokenizer](tokenizer/tokenizer.ipynb)
+- [gpt2-124M](gpt-2/gpt2.ipynb)
 
 
 future learning material:
