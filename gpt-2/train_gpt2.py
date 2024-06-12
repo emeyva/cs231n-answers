@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import tiktoken
+import time
 # -----------------------------------------------------------------------------
 
 class CausalSelfAttention(nn.Module):
@@ -89,6 +91,23 @@ class GPT(nn.Module):
         ))
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
 
+        # weight sharing scheme
+        self.transformer.wte.weight = self.lm_head.weight
+
+        # init params
+        self.apply(self._init_weights)
+
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            std = 0.02
+            if hasattr(module, 'NANOGPT_SCALE_INIT'):
+                std *= (2 * self.config.n_layer) ** -0.5
+            torch.nn.init.normal_(module.weight, mean=0.0, std=std)
+            if module.bias is not None:
+                torch.nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
 
     def forward(self, idx, targets=None):
         # idx is of shape (B, T)
@@ -160,25 +179,76 @@ class GPT(nn.Module):
 
         return model
     
+
+# -----------------------------------------------------
+
+class DataLoaderLite:
+    def __init__(self, B, T):
+        self.B = B
+        self.T = T
+
+        # load shakespeare dataset
+        with open('input.txt', 'r') as f:
+            text = f.read()
+
+        enc = tiktoken.get_encoding('gpt2')
+        tokens = enc.encode(text)
+        self.tokens = torch.tensor(tokens)
+        print(f"loaded {len(self.tokens)} tokens")
+        print(f"1 epoch = {len(self.tokens) // (B * T)} batches")
+
+        self.current_position = 0
+        
+
+    def next_batch(self):
+        B, T = self.B, self.T
+        buf = self.tokens[self.current_position : self.current_position+B*T+1]
+        x = (buf[:-1]).view(B, T) # inputs
+        y = (buf[1:]).view(B, T) # targets
+        # advance the position in the tensor
+        self.current_position += B * T   # * self.num_processes
+        # if loading the next batch would be out of bounds, reset
+        if self.current_position + (B * T + 1) > len(self.tokens):
+            self.current_position = 0
+        return x, y
+    
 # ----
+# detect device
+device = "cpu"
+if torch.cuda.is_available():
+    device = "cuda"
+print(f"using device: {device}")
+
+# to be able to reproduce the same results
+torch.manual_seed(1337)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(1337)
+
+train_loader = DataLoaderLite(B=4, T=256)
+
+# model = GPT.from_pretrained('gpt2')
+model = GPT(GPTConfig())
+model.to(device) # 
+
+# optimze
+optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4) # lr=3e-4 good initial default
+for i in range(50):
+    t0 = time.time()
+    x, y = train_loader.next_batch()
+    x, y = x.to(device), y.to(device)
+    optimizer.zero_grad()
+    logits, loss = model(x, y)
+    loss.backward()
+    optimizer.step()
+    torch.cuda.synchronize()
+    t1 = time.time()
+    dt = (t1-t0)*1000 # time in ms
+    print(f"step {i}, loss: {loss.item()}, dt: {dt:.2f}ms")
+
+exit()
+
 num_return_sequences = 5
 max_length = 30
-
-model = GPT.from_pretrained('gpt2')
-model.eval()
-model.to('cuda')
-
-# prefix tokens
-import tiktoken
-enc = tiktoken.get_encoding('gpt2')
-tokens = enc.encode("Hello, I'm a language mode,")
-tokens = torch.tensor(tokens, dtype=torch.long) # (8,)
-tokens = tokens.unsqueeze(0).repeat(num_return_sequences, 1) # (5, 8)
-
-x = tokens.to('cuda')
-
-# x is (B, T) where B = 5, T = 8
-# seed = 42
 
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
