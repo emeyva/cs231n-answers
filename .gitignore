@@ -45,3 +45,6 @@ htmlcov/
 # notebook cp
 .ipynb_checkpoints
 
+gpt-2/edu_fineweb10B
+gpt-2/hellaswag
+gpt-2/log
